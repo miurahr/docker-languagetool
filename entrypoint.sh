@@ -155,9 +155,6 @@ user_map(){
 
 print_info(){
   echo "INFO: Version Informations:"
-  local _ALPINE_VERSION
-  _ALPINE_VERSION=$(grep "VERSION_ID=" /etc/os-release | cut -d'=' -f2)
-  echo "Alpine Linux v${_ALPINE_VERSION}" | indent
   java --version | indent
 }
 
@@ -195,15 +192,16 @@ else
   echo "INFO: Using JAVA_OPTS=${JAVA_OPTS}"
 fi
 
-read -ra FINAL_JAVA_OPTS <<< "${JAVA_OPTS}"
-#setloglevel
-xml edit --inplace --update "/configuration/logger[@name='org.languagetool']/@level" --value ${LOG_LEVEL} logback.xml
+if [ -z "${LAGUAGETOOL_SERVER_OPTS}" ]; then
+  LANGUAGETOOL_SERVER_OPTS="--public --allow-origin \"*\" --config config.properties"
+  echo "INFO: Using LANGUAGETOOL_SERVER_OPTS=${LANGUAGETOOL_SERVER_OPTS}"
+else
+  echo "LANGUAGETOOL_SERVER_OPTS environment variable detected"
+  echo "INFO: Using LANGUAGETOOL_SERVER_OPTS=${LANGUAGETOOL_SERVER_OPTS}"
+fi
+
+export JAVA_OPTS="${JAVA_OPTS}"
+export LANGUAGETOOL_SERVER_OPTS="${LANGUAGETOOL_SERVER_OPTS}"
 
 # start languagetool
-exec su-exec languagetool:languagetool \
-  java "${FINAL_JAVA_OPTS[@]}" -Dlogback.configurationFile="${LOGBACK_CONFIG}" -cp languagetool-server.jar org.languagetool.server.HTTPServer \
-    --port "${LISTEPORT:-8010}" \
-    --public \
-    --allow-origin "*" \
-    --config config.properties
-
+exec gosu languagetool:languagetool /languagetool/bin/languagetool-server

@@ -1,8 +1,8 @@
 ---
 services:
   languagetool:
-    image: meyay/languagetool:latest
-    container_name: languagetool
+    build: .
+    container_name: server
     restart: always
     cap_drop:
       - ALL
@@ -13,19 +13,18 @@ services:
     security_opt:
       - no-new-privileges
     ports:
-      # Using default port from the image
-      - 8010:8010
+      - "8081:8081"
     environment:
       # OVERRIDE: comma seperated list of ngram language models to download (if not existing)
       #           Valid languages are "en", "de", "es", "fr" and "nl". Image default: none
       #           example: download_ngrams_for_langs: en,de,es
-      # download_ngrams_for_langs: en,de
+      download_ngrams_for_langs: en
       # OPTIONAL: container path for the ngrams data. Image default: /ngrams
-      # langtool_languageModel: /ngrams
+      langtool_languageModel: /ngrams
       # OVERRIDE: container path to the fasttext binary. Image default: /usr/local/bin/fasttext
       # langtool_fasttextBinary: /usr/local/bin/fasttext
       # OPTIONAL: path to the fasttext model. Will be downloaded if not existing
-      # langtool_fasttextModel:  /fasttext/lid.176.bin
+      langtool_fasttextModel:  /fasttext/lid.176.bin
       # OVERRIDE: minimal Java heap size. Image default: 256m
       # JAVA_XMS: 512m
       # OVERRIDE: Maximum Java heap size. Image default: 1g
@@ -37,6 +36,8 @@ services:
       # OVERRIDE: Optional: Set you own custom Java options for the JVM.
       #           Note: This will render the other JAVA_* options useless.
       # JAVA_OPTS: 
+      # OVERRIDE: Optional: Set you own custom languagetool server options
+      # LANGUAGETOOL_SERVER_OPTS: --public --allow-origin "*" 
       # OVERRIDE: Set UID for user languagetool. Image default: 783
       # MAP_UID: 1026
       # OVERRIDE: Set GID for group languagetool. Image default: 783
