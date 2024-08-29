@@ -185,23 +185,12 @@ if [ -z "${JAVA_OPTS}" ]; then
       break
     fi
   done
-  JAVA_OPTS="-Xms${JAVA_XMS:-256m} -Xmx${JAVA_XMX:-1024m} ${JAVA_GC_OPT}"
+  export JAVA_OPTS="-Xms${JAVA_XMS:-256m} -Xmx${JAVA_XMX:-1024m} ${JAVA_GC_OPT}"
   echo "INFO: Using JAVA_OPTS=${JAVA_OPTS}"
 else
   echo "JAVA_OPTS environment variables detected."
   echo "INFO: Using JAVA_OPTS=${JAVA_OPTS}"
 fi
 
-if [ -z "${LAGUAGETOOL_SERVER_OPTS}" ]; then
-  LANGUAGETOOL_SERVER_OPTS="--public --allow-origin \"*\" --config config.properties"
-  echo "INFO: Using LANGUAGETOOL_SERVER_OPTS=${LANGUAGETOOL_SERVER_OPTS}"
-else
-  echo "LANGUAGETOOL_SERVER_OPTS environment variable detected"
-  echo "INFO: Using LANGUAGETOOL_SERVER_OPTS=${LANGUAGETOOL_SERVER_OPTS}"
-fi
-
-export JAVA_OPTS="${JAVA_OPTS}"
-export LANGUAGETOOL_SERVER_OPTS="${LANGUAGETOOL_SERVER_OPTS}"
-
 # start languagetool
-exec gosu languagetool:languagetool /languagetool/bin/languagetool-server
+exec gosu languagetool:languagetool /languagetool/bin/languagetool-server --public --port 8081 --config config.properties --allow-origin 
