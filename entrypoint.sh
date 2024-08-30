@@ -46,17 +46,17 @@ download_and_extract_ngrams(){
   local _LANG
   _LANG="${1}"
   local _BASE_URL
-  _BASE_URL="https://f004.backblazeb2.com/file/miurahr-languagetool-ngram-8/"
+  _BASE_URL="https://f004.backblazeb2.com/file/miurahr-languagetool-ngram-8"
 
   if [ ! -d "${langtool_languageModel}/${_LANG}" ]; then
     if [ ! -e "${langtool_languageModel}/ngrams-${_LANG}.zip" ]; then
       echo "INFO: Downloading \"${_LANG}\" ngrams."
-      su -s /bin/bash languagetool -c "wget  -O \"${langtool_languageModel}/ngrams-${_LANG}.zip\" \"${_BASE_URL}/${ngrams_filesnames[${_LANG}]}\""
+      gosu languagetool:languagetool wget  -O "${langtool_languageModel}/ngrams-${_LANG}.zip" "${_BASE_URL}/${ngrams_filesnames[${_LANG}]}"
     fi
     if [ -e "${langtool_languageModel}/ngrams-${_LANG}.zip" ]; then
       echo "INFO: Extracting \"${_LANG}\" ngrams."
-      su -s /bin/bash languagetool -c "unzip  \"${langtool_languageModel}/ngrams-${_LANG}.zip\" -d \"${langtool_languageModel}\""
-      su -s /bin/bash languagetool -c "rm \"${langtool_languageModel}/ngrams-${_LANG}.zip\""
+      gosu languagetool:languagetool unzip  "${langtool_languageModel}/ngrams-${_LANG}.zip" -d "${langtool_languageModel}"
+      gosu languagetool:languagetool rm "${langtool_languageModel}/ngrams-${_LANG}.zip"
     fi
   else
     echo "INFO: Skipping download of ngrams model for language ${_LANG}: already exists."
@@ -93,7 +93,7 @@ download_fasttext_mode(){
   if [ -n "${langtool_fasttextModel}" ];then
     if [ ! -e "${langtool_fasttextModel}" ]; then
       echo "INFO: Downloading fasttext model."
-      su -s /bin/bash languagetool -c "wget  -O \"${langtool_fasttextModel}\" \"https://dl.fbaipublicfiles.com/fasttext/supervised-models/lid.176.bin\""
+      gosu languagetool:languagetool wget  -O "${langtool_fasttextModel}" "https://dl.fbaipublicfiles.com/fasttext/supervised-models/lid.176.bin"
       fix_dir_owner "${langtool_fasttextModel}"
     else
       echo "INFO: Skipping download of fasttext model: already exists."
