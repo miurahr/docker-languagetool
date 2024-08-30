@@ -2,52 +2,34 @@
 
 > [LanguageTool](https://www.languagetool.org/) is an Open Source proofreading software for English, French, German, Polish, Russian, and [more than 20 other languages](https://languagetool.org/languages/). It finds many errors that a simple spell checker cannot detect.
 
-The source repository can be found [here](https://github.com/meyayl/docker-languagetool).
+The source repository can be found [here](https://github.com/miurahr/docker-languagetool).
 
 About this image:
 
-- Uses official [release zip](https://languagetool.org/download/)
-- Uses the latest Alpine 3.20 base image
-- Uses custom Eclipse Temurin 21 JRE limited to modules required by the current LanguageTool release
+- It uses the private [fork source](https://github.com/miurahr/languagetool/tree/omegat-6.5)
+- It builds a container image from the source.
+- It uses a patched version of languagetool 6.5 snapshot with Lucene 8.11.3.
+- It uses the OpenJDK Java 21 slim base image
 - includes `fasttext`
-- includes `su-exec`
-  - container starts as root and executes languagetool as restricted user using `exec su-exec`
+- It uses `gosu`
+  - container starts as root and executes languagetool as restricted user using `exec gosu`
   - container fixes folder ownership for ngrams and fasttext folders
 - Entrypoint uses `tini` to suppress the container exiting with status code 143 (LanguageTool does not handle SIGTERM as it should)
-- optional: downloads ngram language modules if configured (if they don't already exist)
-- optional: downloads fasttext module (if it doesn't already exist)
+- optional: download ngram language modules if configured (when there have never been downloaded yet.)
+  - It uses the ngram module upgraded to Lucene 8 format 
+- optional: download fasttext module (if it doesn't already exist)
 - optional: user mapping (make sure to check MAP_UID and MAP_GID below)
 - optional: set log level
 
-## Setup
+## Compose configuration
 
-### Docker CLI Usage
-
-```sh
-docker run -d \
-  --name languagetool \
-  --restart always \
-  --cap-drop ALL \
-  --cap-add CAP_SETUID \
-  --cap-add CAP_SETGID \
-  --cap-add CAP_CHOWN \
-  --security-opt no-new-privileges \
-  --publish 8010:8010 \
-  --env download_ngrams_for_langs=en \
-  --env langtool_languageModel=/ngrams \
-  --env langtool_fasttextModel=/fasttext/lid.176.bin \
-  --volume $PWD/ngrams:/ngrams \
-  --volume $PWD/fasttext:/fasttext \
-  meyay/languagetool:latest
-```
-
-## Docker Compose Usage
+Please refer `compose.yml` configuration file.
 
 ```yaml
 ---
 services:
   languagetool:
-    image: meyay/languagetool:latest
+    build: .
     container_name: languagetool
     restart: always
     cap_drop:
@@ -69,7 +51,18 @@ services:
       - ./fasttext:/fasttext
 ```
 
-An example compose file can be downloaded from [here](https://raw.githubusercontent.com/meyayl/docker-languagetool/main/docker-compose.yml).
+An example compose file can be downloaded from [here](https://raw.githubusercontent.com/miurahr/docker-languagetool/main/compose.yml).
+
+## Compose execution
+
+You can use containerd's `nerdctl`, rancher desktop or `docker` CLI command.
+
+```console
+git clone https://github.com/miurahr/docker-languagetool.git
+cd docker-languagetool
+nerdctl compose build
+nerdctl compose up
+```
 
 ## Parameters
 
@@ -94,24 +87,23 @@ The environment parameters are split into two halves, separated by an equal, the
 
 Now that fasttext is available since Alpine 3.19, the image switched to using the Alpine package, instead of compiling the binaries from the sources. This hopefully fixes the compatibility issue users with older cpus experienced with my previous images, that were build on a amd64v3 architecture cpu, which compiled the `fasttext` binary with cpu optimizations older cpus do not support.
 
-If the Alpine `fasttext` package does not work for you, you can build a custom image to compile the `fasttext` binary using cpu optimizations your cpu (as long as it's x86_64 based) actually understands:
+If the debian `fasttext` package does not work for you, you can build a custom image to compile the `fasttext` binary using cpu optimizations your cpu (as long as it's x86_64 based) actually understands:
 
 ```
-git clone  https://github.com/meyayl/docker-languagetool.git
+git clone https://github.com/miurahr/docker-languagetool.git
 cd docker-languagetool
-sudo docker build -t meyay/languagetool:latest -f Dockerfile.fasttext .
+nerdctl build -t miurahr/languagetool:latest -f Dockerfile.fasttext .
 ```
 
-Once the image is build, you can `docke compose up -d` like you would do with the images hosted on Docker Hub.
+Once the image is build, you can `nerdctl compose up -d`.
 
->NOTE1: Alpine version 3.19+ commes with gcc13, and does not provide older versions which are required to compile the fasttext sources. As a result Alpine 3.18.8 is used to compile fasttext with gcc12.
-
->NOTE2: Synology users can find a git package in the [SynoCommunity](https://synocommunity.com) repository.
+>NOTE1: Synology users can find a git package in the [SynoCommunity](https://synocommunity.com) repository.
 
 ## Changelog
 
 | Date | Tag | Change |
 |---|---|---|
+| 2024-08-30 | 6.5-0 | - Update base to the fork version of LanguageTool with Lucene 8.11.3 |
 | 2024-07-31 | 6.4-3 | - Update base image to Alpine 3.20.2<br/> - Update Java to 21.0.4+7 |
 | 2024-07-05 | 6.4-2 | - Update base image to Alpine 3.20.1<br/> - Update Java to 21.0.3+9 |
 | 2024-05-27 | 6.4-1 | - Update base image to Alpine 3.20.0 |
