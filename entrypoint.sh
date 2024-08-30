@@ -33,20 +33,20 @@ fix_dir_owner(){
   find "${_PATH}"  ! \( -user  languagetool -group languagetool \) -exec chown languagetool:languagetool {} \;
 }
 
-# download ngrams
+# download ngrams from the custom repository.
 
 declare -A ngrams_filesnames
-ngrams_filesnames[en]=ngrams-en-20150817.zip
-ngrams_filesnames[de]=ngrams-de-20150819.zip
-ngrams_filesnames[es]=ngrams-es-20150915.zip
-ngrams_filesnames[fr]=ngrams-fr-20150913.zip
-ngrams_filesnames[nl]=ngrams-nl-20181229.zip
+ngrams_filesnames[en]=ngrams-en-20240830.zip
+#ngrams_filesnames[de]=ngrams-de-20150819.zip
+#ngrams_filesnames[es]=ngrams-es-20150915.zip
+#ngrams_filesnames[fr]=ngrams-fr-20150913.zip
+#ngrams_filesnames[nl]=ngrams-nl-20181229.zip
 
 download_and_extract_ngrams(){
   local _LANG
   _LANG="${1}"
   local _BASE_URL
-  _BASE_URL="https://languagetool.org/download/ngram-data"
+  _BASE_URL="https://f004.backblazeb2.com/file/miurahr-languagetool-ngram-8/"
 
   if [ ! -d "${langtool_languageModel}/${_LANG}" ]; then
     if [ ! -e "${langtool_languageModel}/ngrams-${_LANG}.zip" ]; then
@@ -61,9 +61,6 @@ download_and_extract_ngrams(){
   else
     echo "INFO: Skipping download of ngrams model for language ${_LANG}: already exists."
   fi
-  #if [ -n "${langtool_languageModel}" ]; then
-  #  fix_dir_owner "${langtool_languageModel}/${_LANG}/"
-  #fi
 }
 
 handle_ngrams(){
